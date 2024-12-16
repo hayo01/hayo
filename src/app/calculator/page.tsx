@@ -4,23 +4,28 @@ import React, { useState } from 'react';
 import Button from './_components/Button';
 import { calculate } from './_utils/calculate';
 
+interface PreRes {
+  isRes: boolean;
+  preProps: string;
+}
+
 export default function Calculator() {
   const [calProps, setCalProps] = useState('');
+  const [lastSymbol, setLastSymbol] = useState('');
   const OpSymbols = ['+', '-', '/', '*'];
 
-  function preHandleSetCalProps(p: string): boolean {
-    let result = false;
+  function preHandleSetCalProps(p: string): PreRes {
+    let result = { isRes: false, preProps: p };
     let lastProp = calProps.charAt(calProps.length - 1);
 
     // Prevents entering 00 at the first or the next of symbols
     if (p === '00' && (calProps.length === 0 || OpSymbols.includes(lastProp))) {
-      result = true;
-      setCalProps(prev => prev + '0');
+      result.preProps = '0';
     }
 
     // Prevents putting symbols together
     if (OpSymbols.includes(p) && OpSymbols.includes(lastProp)) {
-      result = true;
+      result.isRes = true;
       console.log(
         `${lastProp} : Symbols can't be used next to another symbol.`
       );
@@ -29,14 +34,52 @@ export default function Calculator() {
     return result;
   }
 
+  // Controls saving entered data
   function handleSetCalProps(p: string) {
     const preRes = preHandleSetCalProps(p);
+    // 3 variables to check last Number
+    const lastNumIdx = calProps.lastIndexOf(lastSymbol);
+    const tempCalProps = calProps + preRes.preProps;
+    const lastNum = tempCalProps.slice(lastNumIdx + 1);
 
-    if (!preRes) {
-      if (OpSymbols.includes(p) || typeof Number(p) === 'number') {
-        setCalProps(prev => prev + p);
+    if (!preRes.isRes) {
+      // 1) Prevents putting meaningless multiple zero
+      if (Number(preRes.preProps) === 0) {
+        // 1-1) First num === 0
+        if (calProps.length === 1) {
+          setCalProps('0');
+        } else if (lastSymbol === '' ? false : Number(lastNum) === 0) {
+          setCalProps(tempCalProps.slice(0, lastNumIdx + 1) + '0');
+        } else {
+          setCalProps(prev => prev + preRes.preProps);
+        }
+
+        // 2) Saves an entered symbol
+      } else if (OpSymbols.includes(preRes.preProps)) {
+        console.log('no.2 saving');
+        setCalProps(prev => prev + preRes.preProps);
+        setLastSymbol(preRes.preProps); // save the last symbol
+
+        // 3) Saves an entered number
+      } else if (
+        typeof Number(preRes.preProps) === 'number' &&
+        preRes.preProps !== '.'
+      ) {
+        // 3-1) Prevents putting meaningless zero at the frist digit
+        setCalProps(prev => {
+          const newData =
+            prev === '0' ? preRes.preProps : prev + preRes.preProps;
+          return newData;
+        });
+
+        // 4) Entered data === '.'
       } else {
-        console.log(`handleSetCalProps_(ELSE) ---> ${p}, ${calProps}`);
+        // 4-1) Limits the number of decimals('.') to one
+        if (calProps.length > 0 && !calProps.includes('.')) {
+          setCalProps(prev => prev + preRes.preProps);
+        } else {
+          return;
+        }
       }
     }
   }
@@ -67,10 +110,13 @@ export default function Calculator() {
           <Button onClick={() => handleSetCalProps('8')}>8</Button>
           <Button onClick={() => handleSetCalProps('9')}>9</Button>
           <Button onClick={() => handleSetCalProps('/')}>÷</Button>
-          <div className="grid grid-rows-subgrid row-span-2 border rounded-md">
-            <Button onClick={() => setCalProps('')} style="border-0">
+          <div
+            onClick={() => setCalProps('')}
+            className="grid grid-rows-subgrid row-span-2 border rounded-md hover:scale-125 hover:text-[#0a1d0b] hover:bg-[#5ee8b3]"
+          >
+            <p className="flex justify-center items-center text-base font-bold">
               AC
-            </Button>
+            </p>
           </div>
           <Button onClick={() => handleSetCalProps('4')}>4</Button>
           <Button onClick={() => handleSetCalProps('5')}>5</Button>
