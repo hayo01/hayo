@@ -3,6 +3,9 @@
 import React, { useState } from 'react';
 import Button from './_components/Button';
 import { calculate } from './_utils/calculate';
+import Link from 'next/link';
+import Arrow from '@images/arrow.svg';
+import Image from 'next/image';
 
 interface PreRes {
   isRes: boolean;
@@ -95,7 +98,14 @@ export default function Calculator() {
   }
 
   return (
-    <div className="h-screen flex justify-center items-center">
+    <div className="h-screen flex flex-col justify-center items-center">
+      <div className="fixed flex top-0 mt-8 hover:scale-110">
+        <Image width={25} height={25} src={Arrow} alt="arrow" />
+        <Link href={'/'} className="font-extrabold text-xl ml-2">
+          Back to Home
+        </Link>
+      </div>
+
       <div className="flex flex-col gap-6 p-5 w-80 border rounded-2xl">
         <input
           type="text"
