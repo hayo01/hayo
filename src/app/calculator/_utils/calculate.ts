@@ -1,5 +1,5 @@
 export function calculate(calParams: string): string {
   console.log(`Entered calParams >> ${calParams}`);
 
-  return '';
+  return String(eval(calParams));
 }
